@@ -1011,7 +1011,7 @@ def generate_html_dashboard(df):
                 <li><a href="#demographics">Demographics</a></li>
                 <li><a href="#financial">Financial Profile</a></li>
                 <li><a href="#interests">Interest Intelligence</a></li>
-                <li><a href="#business-insights">Business Insights</a></li>
+                <!-- <li><a href="#business-insights">Business Insights</a></li> -->
             </ul>
         </nav>
 
