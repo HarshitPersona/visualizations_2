@@ -247,92 +247,144 @@ def create_interests_analysis(df):
     """Create interests and lifestyle analysis"""
     print("Creating interests analysis...")
 
-    # print(df.columns)
-    
     # Find interest columns
     interest_cols = [col for col in df.columns if 'interests.' in col and col not in ['data.document.attributes.interests.id', 'data.document.attributes.interests.created_at']]
-    # print(interest_cols)
     
     if len(interest_cols) == 0:
         print("No interest data found in the dataset")
         return
     
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-    fig.suptitle('User Interests and Lifestyle Analysis', fontsize=16, fontweight='bold')
+    fig, axes = plt.subplots(2, 3, figsize=(20, 16))
+    fig.suptitle('User Interests and Lifestyle Analysis\n(Scores: 1=Low Interest, 9=High Interest)', fontsize=16, fontweight='bold')
     
-    # Top interests
-    interest_scores = {}
-    for col in interest_cols[:100]:  # Limit to first 20 to avoid overcrowding
+    # Analyze interest scores properly (1-9 scale)
+    interest_analysis = {}
+    for col in interest_cols[:100]:
         interest_name = col.split('.')[-1].replace('_', ' ').title()
-        # Count non-null values as interested users
-        score = df[col].notna().sum()
-        if score > 0:
-            interest_scores[interest_name] = score
-    
-    if interest_scores:
-        top_interests = sorted(interest_scores.items(), key=lambda x: x[1], reverse=True)[:15]
-        interests, scores = zip(*top_interests)
+        interest_data = df[col].dropna()
         
-        axes[0,0].barh(range(len(interests)), scores)
+        if len(interest_data) > 0:
+            # Convert to numeric, handling any string values
+            try:
+                interest_data = pd.to_numeric(interest_data, errors='coerce').dropna()
+                if len(interest_data) > 0:
+                    interest_analysis[interest_name] = {
+                        'user_count': len(interest_data),
+                        'avg_score': interest_data.mean(),
+                        'high_interest_users': (interest_data >= 7).sum(),  # Users with strong interest (7-9)
+                        'weighted_score': len(interest_data) * interest_data.mean()  # Volume * Intensity
+                    }
+            except:
+                continue
+    
+    if interest_analysis:
+        # Top interests by user volume
+        top_by_volume = sorted(interest_analysis.items(), key=lambda x: x[1]['user_count'], reverse=True)[:15]
+        interests, data = zip(*top_by_volume)
+        user_counts = [d['user_count'] for d in data]
+        
+        axes[0,0].barh(range(len(interests)), user_counts, color='skyblue')
         axes[0,0].set_yticks(range(len(interests)))
         axes[0,0].set_yticklabels(interests)
-        axes[0,0].set_title('Top 15 User Interests')
-        axes[0,0].set_xlabel('Number of Interested Users')
+        axes[0,0].set_title('Top 15 Interests by User Volume')
+        axes[0,0].set_xlabel('Number of Users with This Interest')
+        
+        # Top interests by average score (intensity)
+        top_by_intensity = sorted(interest_analysis.items(), key=lambda x: x[1]['avg_score'], reverse=True)[:15]
+        interests_int, data_int = zip(*top_by_intensity)
+        avg_scores = [d['avg_score'] for d in data_int]
+        
+        bars = axes[0,1].barh(range(len(interests_int)), avg_scores, color='lightcoral')
+        axes[0,1].set_yticks(range(len(interests_int)))
+        axes[0,1].set_yticklabels(interests_int)
+        axes[0,1].set_title('Top 15 Interests by Average Score (Intensity)')
+        axes[0,1].set_xlabel('Average Interest Score (1-9)')
+        axes[0,1].set_xlim(0, 9)
+        
+        # Add score labels on bars
+        for i, (bar, score) in enumerate(zip(bars, avg_scores)):
+            axes[0,1].text(bar.get_width() + 0.1, bar.get_y() + bar.get_height()/2, 
+                          f'{score:.1f}', ha='left', va='center', fontsize=8)
+        
+        # High engagement interests (users with scores 7-9)
+        high_engagement = sorted(interest_analysis.items(), key=lambda x: x[1]['high_interest_users'], reverse=True)[:15]
+        interests_he, data_he = zip(*high_engagement)
+        high_users = [d['high_interest_users'] for d in data_he]
+        
+        axes[0,2].barh(range(len(interests_he)), high_users, color='lightgreen')
+        axes[0,2].set_yticks(range(len(interests_he)))
+        axes[0,2].set_yticklabels(interests_he)
+        axes[0,2].set_title('Top 15 Interests by High Engagement\n(Users with Scores 7-9)')
+        axes[0,2].set_xlabel('Number of Highly Engaged Users')
     
     # Lifestyle segments
     if 'data.document.attributes.lifestyle_segment' in df.columns:
         lifestyle_counts = df['data.document.attributes.lifestyle_segment'].value_counts().head(10)
         if len(lifestyle_counts) > 0:
-            axes[0,1].pie(lifestyle_counts.values, labels=lifestyle_counts.index, autopct='%1.1f%%')
-            axes[0,1].set_title('Top Lifestyle Segments')
+            axes[1,0].pie(lifestyle_counts.values, labels=lifestyle_counts.index, autopct='%1.1f%%')
+            axes[1,0].set_title('Top Lifestyle Segments')
     
-    # Interest correlation heatmap (if we have enough data)
-    if len(interest_cols) >= 5:
-        # Select top 10 interests for correlation analysis
-        top_interest_cols = [col for col, _ in sorted(interest_scores.items(), key=lambda x: x[1], reverse=True)[:10]]
-        # Map back to original column names
-        mapped_cols = []
-        for interest in top_interest_cols:
-            original_col = next((col for col in interest_cols if col.split('.')[-1].replace('_', ' ').title() == interest), None)
-            if original_col:
-                mapped_cols.append(original_col)
+    # Interest score distribution
+    if interest_analysis:
+        all_scores = []
+        for col in interest_cols[:50]:  # Sample from interest columns
+            scores = pd.to_numeric(df[col], errors='coerce').dropna()
+            all_scores.extend(scores.tolist())
         
-        if len(mapped_cols) >= 3:
-            interest_matrix = df[mapped_cols].notna().astype(int)
-            correlation_matrix = interest_matrix.corr()
+        if all_scores:
+            axes[1,1].hist(all_scores, bins=range(1, 11), edgecolor='black', alpha=0.7, color='orange')
+            axes[1,1].set_title('Distribution of Interest Scores\n(All Interests Combined)')
+            axes[1,1].set_xlabel('Interest Score (1-9)')
+            axes[1,1].set_ylabel('Frequency')
+            axes[1,1].set_xticks(range(1, 10))
             
-            im = axes[1,0].imshow(correlation_matrix, cmap='coolwarm', aspect='auto')
-            axes[1,0].set_xticks(range(len(mapped_cols)))
-            axes[1,0].set_yticks(range(len(mapped_cols)))
-            axes[1,0].set_xticklabels([col.split('.')[-1].replace('_', ' ').title() for col in mapped_cols], rotation=45)
-            axes[1,0].set_yticklabels([col.split('.')[-1].replace('_', ' ').title() for col in mapped_cols])
-            axes[1,0].set_title('Interest Correlation Matrix')
-            plt.colorbar(im, ax=axes[1,0])
+            # Add statistics
+            mean_score = np.mean(all_scores)
+            axes[1,1].axvline(mean_score, color='red', linestyle='--', linewidth=2, 
+                             label=f'Mean: {mean_score:.1f}')
+            axes[1,1].legend()
     
-    # Interest summary statistics
+    # Interest insights and statistics
     total_users = len(df)
-    avg_interests_per_user = sum(scores) / total_users if total_users > 0 else 0
+    total_interest_categories = len(interest_analysis)
     
-    summary_text = f"""Interest Summary:
-    
-Total Users Analyzed: {total_users:,}
-Total Interest Categories: {len(interest_scores)}
-Avg Interests per User: {avg_interests_per_user:.1f}
+    if interest_analysis:
+        # Calculate average scores across all interests
+        all_avg_scores = [data['avg_score'] for data in interest_analysis.values()]
+        overall_avg_score = np.mean(all_avg_scores)
+        
+        # Find most engaging interest
+        most_engaging = max(interest_analysis.items(), key=lambda x: x[1]['avg_score'])
+        most_popular = max(interest_analysis.items(), key=lambda x: x[1]['user_count'])
+        
+        summary_text = f"""Interest Insights:
 
-Most Popular Interests:"""
-    
-    if len(top_interests) >= 3:
-        for i, (interest, score) in enumerate(top_interests[:5]):
-            pct = (score / total_users) * 100
-            summary_text += f"\n{i+1}. {interest}: {score:,} ({pct:.1f}%)"
-    
-    axes[1,1].text(0.1, 0.9, summary_text, transform=axes[1,1].transAxes, 
-                  fontsize=10, verticalalignment='top',
-                  bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.5))
-    axes[1,1].set_xlim(0, 1)
-    axes[1,1].set_ylim(0, 1)
-    axes[1,1].axis('off')
-    axes[1,1].set_title('Interest Statistics')
+📊 OVERVIEW:
+• Total Users: {total_users:,}
+• Interest Categories: {total_interest_categories}
+• Overall Avg Score: {overall_avg_score:.1f}/9
+
+🔥 HIGHEST ENGAGEMENT:
+• {most_engaging[0]}: {most_engaging[1]['avg_score']:.1f}/9
+• {most_engaging[1]['user_count']:,} users
+
+👥 MOST POPULAR:
+• {most_popular[0]}: {most_popular[1]['user_count']:,} users
+• Avg Score: {most_popular[1]['avg_score']:.1f}/9
+
+📈 HIGH INTEREST USERS (7-9):"""
+        
+        for i, (interest, data) in enumerate(high_engagement[:3]):
+            pct = (data['high_interest_users'] / total_users) * 100
+            summary_text += f"\n{i+1}. {interest}: {data['high_interest_users']:,} ({pct:.1f}%)"
+        
+        axes[1,2].text(0.05, 0.95, summary_text, transform=axes[1,2].transAxes, 
+                      fontsize=10, verticalalignment='top',
+                      bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+        axes[1,2].set_xlim(0, 1)
+        axes[1,2].set_ylim(0, 1)
+        axes[1,2].axis('off')
+        axes[1,2].set_title('Key Interest Insights')
     
     plt.tight_layout()
     plt.savefig('interests_analysis.png', dpi=300, bbox_inches='tight')
@@ -466,6 +518,60 @@ def create_summary_dashboard(df):
     plt.savefig('summary_dashboard.png', dpi=300, bbox_inches='tight')
     # plt.show()
 
+def create_business_insights_report(df):
+    """Generate key business insights about user interests"""
+    print("Generating business insights report...")
+    
+    # Find interest columns
+    interest_cols = [col for col in df.columns if 'interests.' in col and col not in ['data.document.attributes.interests.id', 'data.document.attributes.interests.created_at']]
+    
+    insights = {}
+    for col in interest_cols:
+        interest_name = col.split('.')[-1].replace('_', ' ').title()
+        interest_data = pd.to_numeric(df[col], errors='coerce').dropna()
+        
+        if len(interest_data) > 0:
+            insights[interest_name] = {
+                'users': len(interest_data),
+                'avg_score': interest_data.mean(),
+                'high_interest': (interest_data >= 7).sum(),
+                'moderate_interest': ((interest_data >= 4) & (interest_data < 7)).sum(),
+                'low_interest': (interest_data < 4).sum()
+            }
+    
+    # Business segments based on interests
+    print("\n🎯 KEY BUSINESS INSIGHTS:")
+    print("=" * 50)
+    
+    if insights:
+        # High-value segments (high engagement + volume)
+        high_value = sorted(insights.items(), 
+                           key=lambda x: x[1]['high_interest'] * x[1]['avg_score'], 
+                           reverse=True)[:5]
+        
+        print("\n📈 HIGH-VALUE INTEREST SEGMENTS:")
+        for i, (interest, data) in enumerate(high_value):
+            engagement_rate = (data['high_interest'] / data['users']) * 100
+            print(f"{i+1}. {interest}:")
+            print(f"   • {data['high_interest']:,} highly engaged users ({engagement_rate:.1f}%)")
+            print(f"   • Average score: {data['avg_score']:.1f}/9")
+            print(f"   • Total interested users: {data['users']:,}")
+        
+        # Emerging opportunities (moderate volume, high intensity)
+        emerging = sorted([(k, v) for k, v in insights.items() if v['users'] >= 100 and v['avg_score'] >= 6], 
+                         key=lambda x: x[1]['avg_score'], reverse=True)[:3]
+        
+        print("\n🚀 EMERGING OPPORTUNITIES:")
+        for i, (interest, data) in enumerate(emerging):
+            print(f"{i+1}. {interest}: {data['avg_score']:.1f}/9 avg score, {data['users']:,} users")
+        
+        # Mass market interests (high volume)
+        mass_market = sorted(insights.items(), key=lambda x: x[1]['users'], reverse=True)[:5]
+        
+        print("\n👥 MASS MARKET INTERESTS:")
+        for i, (interest, data) in enumerate(mass_market):
+            print(f"{i+1}. {interest}: {data['users']:,} users (avg: {data['avg_score']:.1f}/9)")
+
 def main():
     """Main function to run all analyses"""
     print("=== USER DEMOGRAPHICS AND BEHAVIOR ANALYSIS ===")
@@ -486,16 +592,19 @@ def main():
         create_demographic_analysis(df)
         create_financial_analysis(df)
         create_interests_analysis(df)
+        create_business_insights_report(df)
         
         print("\n✅ Analysis complete! Generated visualizations:")
         print("- summary_dashboard.png: High-level business overview")
-        print("- geographic_analysis.png: User geographic distribution")
+        print("- geographic_analysis.png: User geographic distribution")  
         print("- demographic_analysis.png: Age, gender, education demographics")
         print("- financial_analysis.png: Income and wealth analysis")
-        print("- interests_analysis.png: User interests and lifestyle")
+        print("- interests_analysis.png: User interests with intensity scores (1-9)")
         
         print("\n📊 All visualizations have been saved as high-resolution PNG files.")
-        print("These insights will help your business team understand your user base!")
+        print("🎯 Business insights show high-value segments and opportunities!")
+        print("\nThese insights will help your business team understand user engagement intensity,")
+        print("not just participation, for more targeted marketing and product development!")
         
     except Exception as e:
         print(f"❌ Error during analysis: {str(e)}")

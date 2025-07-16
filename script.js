@@ -92,4 +92,4 @@ async function processEmails(startRange, endRange) {
 }
 
 // For testing with first 2 emails
-processEmails(402, 1499);
+processEmails(2099, 9999);
