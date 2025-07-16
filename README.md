@@ -2,7 +2,19 @@
 
 This dashboard analyzes your enriched user data from Data Axle to provide insights into your customer base. The analysis includes **3,359 user records** with comprehensive demographic, geographic, financial, and behavioral data.
 
-## Generated Visualizations
+## Generated Outputs
+
+### 🌐 `user_dashboard.html` - Dynamic Interactive Dashboard
+**Single-page HTML dashboard that updates with your current data**
+- **Dynamically generated** from your latest analysis results
+- All visualizations in one professional layout
+- **Live metrics** - user counts, geographic reach, interest insights
+- **Current business recommendations** based on actual data patterns
+- **Timestamp** showing when the dashboard was generated
+- Mobile-responsive design and ready to share via email
+- **Always up-to-date** - regenerates with fresh insights every time
+
+### 📊 Individual Visualization Files
 
 ### 1. `summary_dashboard.png` - Executive Overview
 **Key metrics for leadership and strategy teams**
@@ -54,6 +66,22 @@ Based on the analysis of your user base:
 - **Financial Profile**: Range of income levels providing segmentation opportunities
 - **Behavioral Data**: Rich interest and lifestyle data for targeted marketing
 
+## How to Use the Dashboard
+
+### 🌐 HTML Dashboard (`user_dashboard.html`)
+**Perfect for business presentations and team sharing**
+- **Open in any web browser** (Chrome, Safari, Firefox, Edge)
+- **Share via email** - single file contains everything
+- **Present in meetings** - professional layout with navigation
+- **Mobile-friendly** - view on tablets and phones
+- **Print-ready** - browser print function creates PDF reports
+
+### 📊 Individual PNG Files
+**For detailed analysis and custom presentations**
+- High-resolution charts for reports and presentations
+- Can be embedded in PowerPoint, Google Slides, or documents
+- Perfect for focused analysis on specific areas
+
 ## How to Use These Insights
 
 ### For Marketing Teams:
@@ -97,17 +125,27 @@ Data Axle's interest scores are based on:
 
 ## Running the Analysis
 
-To regenerate or update the analysis:
+To regenerate or update the analysis with fresh data:
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the analysis
+# Run the analysis (generates fresh dashboard every time)
 python3 user_analysis_dashboard.py
 ```
 
-The script will automatically load the latest data and generate updated visualizations.
+**What happens each time you run it:**
+- Loads the latest `data_axle_results.csv` data
+- Generates fresh PNG visualizations
+- **Creates a new `user_dashboard.html` with current insights**
+- Updates all metrics, recommendations, and business insights
+- Adds timestamp showing when the analysis was performed
+
+**Perfect for:**
+- Weekly/monthly business reviews with updated data
+- Presenting current user trends to stakeholders
+- Tracking changes in user behavior over time
 
 ---
 
