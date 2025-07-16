@@ -107,9 +107,9 @@ Top 3 States:
                 pct = (count / len(df)) * 100
                 metrics_text += f"{i+1}. {state}: {count} ({pct:.1f}%)\n"
         
-        axes[1,1].text(0.1, 0.9, metrics_text, transform=axes[1,1].transAxes, 
-                      fontsize=10, verticalalignment='top', 
-                      bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+        # axes[1,1].text(0.1, 0.9, metrics_text, transform=axes[1,1].transAxes, 
+        #               fontsize=10, verticalalignment='top', 
+        #               bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
         axes[1,1].set_xlim(0, 1)
         axes[1,1].set_ylim(0, 1)
         axes[1,1].axis('off')
@@ -524,9 +524,9 @@ def create_summary_dashboard(df):
         homeowner_pct = (df['data.document.attributes.family.home_owner'].sum() / total_users) * 100
         stats_text += f"\n• Homeowners: {homeowner_pct:.1f}%"
     
-    axes[1,0].text(0.05, 0.95, stats_text, transform=axes[1,0].transAxes, 
-                  fontsize=12, verticalalignment='top', fontweight='bold',
-                  bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+    # axes[1,0].text(0.05, 0.95, stats_text, transform=axes[1,0].transAxes, 
+    #               fontsize=12, verticalalignment='top', fontweight='bold',
+    #               bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
     axes[1,0].set_xlim(0, 1)
     axes[1,0].set_ylim(0, 1)
     axes[1,0].axis('off')
@@ -567,9 +567,9 @@ def create_summary_dashboard(df):
 • Develop premium offerings
 • Target high-income segments"""
     
-    axes[1,2].text(0.05, 0.95, insights_text, transform=axes[1,2].transAxes, 
-                  fontsize=10, verticalalignment='top',
-                  bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+    # axes[1,2].text(0.05, 0.95, insights_text, transform=axes[1,2].transAxes, 
+    #               fontsize=10, verticalalignment='top',
+    #               bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
     axes[1,2].set_xlim(0, 1)
     axes[1,2].set_ylim(0, 1)
     axes[1,2].axis('off')
