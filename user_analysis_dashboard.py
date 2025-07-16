@@ -113,7 +113,7 @@ Top 3 States:
         axes[1,1].set_xlim(0, 1)
         axes[1,1].set_ylim(0, 1)
         axes[1,1].axis('off')
-        axes[1,1].set_title('Geographic Summary')
+        # axes[1,1].set_title('Geographic Summary')
     
     plt.tight_layout()
     plt.savefig('geographic_analysis.png', dpi=300, bbox_inches='tight')
@@ -123,7 +123,7 @@ def create_demographic_analysis(df):
     """Create demographic distribution visualizations"""
     print("Creating demographic analysis...")
     
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    fig, axes = plt.subplots(2, 2, figsize=(18, 12))
     fig.suptitle('User Demographics Analysis', fontsize=16, fontweight='bold')
     
     # Gender distribution
@@ -140,11 +140,11 @@ def create_demographic_analysis(df):
         axes[0,1].set_title('Marital Status Distribution')
     
     # Home ownership
-    if 'data.document.attributes.family.home_owner' in df.columns:
-        home_counts = df['data.document.attributes.family.home_owner'].value_counts()
-        axes[0,2].pie(home_counts.values, labels=['Owner' if x else 'Renter' for x in home_counts.index], 
-                     autopct='%1.1f%%')
-        axes[0,2].set_title('Home Ownership')
+    # if 'data.document.attributes.family.home_owner' in df.columns:
+    #     home_counts = df['data.document.attributes.family.home_owner'].value_counts()
+    #     axes[0,2].pie(home_counts.values, labels=['Owner' if x else 'Renter' for x in home_counts.index], 
+    #                  autopct='%1.1f%%')
+    #     axes[0,2].set_title('Home Ownership')
     
     # Education level
     if 'data.document.attributes.family.estimated_education_level' in df.columns:
@@ -164,15 +164,15 @@ def create_demographic_analysis(df):
         axes[1,1].set_ylabel('Number of Users')
     
     # Political affiliation
-    if 'data.document.attributes.political_party_affiliation' in df.columns:
-        pol_counts = df['data.document.attributes.political_party_affiliation'].value_counts()
-        if len(pol_counts) > 0:
-            axes[1,2].pie(pol_counts.values, labels=pol_counts.index, autopct='%1.1f%%')
-            axes[1,2].set_title('Political Affiliation')
-        else:
-            axes[1,2].text(0.5, 0.5, 'No Political Data Available', 
-                          transform=axes[1,2].transAxes, ha='center', va='center')
-            axes[1,2].set_title('Political Affiliation')
+    # if 'data.document.attributes.political_party_affiliation' in df.columns:
+    #     pol_counts = df['data.document.attributes.political_party_affiliation'].value_counts()
+    #     if len(pol_counts) > 0:
+    #         axes[1,2].pie(pol_counts.values, labels=pol_counts.index, autopct='%1.1f%%')
+    #         axes[1,2].set_title('Political Affiliation')
+    #     else:
+    #         axes[1,2].text(0.5, 0.5, 'No Political Data Available', 
+    #                       transform=axes[1,2].transAxes, ha='center', va='center')
+    #         axes[1,2].set_title('Political Affiliation')
     
     plt.tight_layout()
     plt.savefig('demographic_analysis.png', dpi=300, bbox_inches='tight')
@@ -256,17 +256,17 @@ Range Data: {len(wealth_midpoint):,} users"""
                           bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
     
     # Income vs Home Ownership
-    if 'data.document.attributes.family.estimated_income' in df.columns and 'data.document.attributes.family.home_owner' in df.columns:
-        income_by_ownership = df.groupby('data.document.attributes.family.home_owner')['data.document.attributes.family.estimated_income'].mean()
-        if len(income_by_ownership) > 0:
-            bars = axes[1,0].bar(['Renter', 'Owner'], income_by_ownership.values)
-            axes[1,0].set_title('Average Income by Home Ownership')
-            axes[1,0].set_ylabel('Average Income ($)')
+    # if 'data.document.attributes.family.estimated_income' in df.columns and 'data.document.attributes.family.home_owner' in df.columns:
+    #     income_by_ownership = df.groupby('data.document.attributes.family.home_owner')['data.document.attributes.family.estimated_income'].mean()
+        # if len(income_by_ownership) > 0:
+        #     bars = axes[1,0].bar(['Renter', 'Owner'], income_by_ownership.values)
+        #     axes[1,0].set_title('Average Income by Home Ownership')
+        #     axes[1,0].set_ylabel('Average Income ($)')
             
-            # Add value labels on bars
-            for bar, value in zip(bars, income_by_ownership.values):
-                axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1000, 
-                              f'${value:,.0f}', ha='center', va='bottom')
+        #     # Add value labels on bars
+        #     for bar, value in zip(bars, income_by_ownership.values):
+        #         axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1000, 
+        #                       f'${value:,.0f}', ha='center', va='bottom')
     
     # Wealth brackets (using range midpoints)
     if ('data.document.attributes.family.estimated_wealth[0]' in df.columns and 
@@ -283,8 +283,8 @@ Range Data: {len(wealth_midpoint):,} users"""
                                    labels=['<$50K', '$50K-$100K', '$100K-$250K', '$250K-$500K', '$500K-$1M', '>$1M'])
             bracket_counts = wealth_brackets.value_counts()
             
-            axes[1,1].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
-            axes[1,1].set_title('Wealth Bracket Distribution\n(Range Midpoints)')
+            axes[1,0].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
+            axes[1,0].set_title('Wealth Bracket Distribution\n(Range Midpoints)')
     else:
         # Fallback to income brackets if wealth data not available
         if 'data.document.attributes.family.estimated_income' in df.columns:
@@ -296,8 +296,10 @@ Range Data: {len(wealth_midpoint):,} users"""
                                        labels=['<$25K', '$25K-$50K', '$50K-$75K', '$75K-$100K', '$100K-$150K', '>$150K'])
                 bracket_counts = income_brackets.value_counts()
                 
-                axes[1,1].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
-                axes[1,1].set_title('Income Bracket Distribution')
+                axes[1,0].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
+                axes[1,0].set_title('Income Bracket Distribution')
+
+    axes[1,1].axis('off')
     
     plt.tight_layout()
     plt.savefig('financial_analysis.png', dpi=300, bbox_inches='tight')
@@ -314,7 +316,7 @@ def create_interests_analysis(df):
         print("No interest data found in the dataset")
         return
     
-    fig, axes = plt.subplots(2, 3, figsize=(20, 16))
+    fig, axes = plt.subplots(2, 2, figsize=(20, 16))
     fig.suptitle('User Interests and Lifestyle Analysis\n(Scores: 1=Low Interest, 9=High Interest)', fontsize=16, fontweight='bold')
     
     # Analyze interest scores properly (1-9 scale)
@@ -371,18 +373,18 @@ def create_interests_analysis(df):
         interests_he, data_he = zip(*high_engagement)
         high_users = [d['high_interest_users'] for d in data_he]
         
-        axes[0,2].barh(range(len(interests_he)), high_users, color='lightgreen')
-        axes[0,2].set_yticks(range(len(interests_he)))
-        axes[0,2].set_yticklabels(interests_he)
-        axes[0,2].set_title('Top 15 Interests by High Engagement\n(Users with Scores 7-9)')
-        axes[0,2].set_xlabel('Number of Highly Engaged Users')
+        axes[1,0].barh(range(len(interests_he)), high_users, color='lightgreen')
+        axes[1,0].set_yticks(range(len(interests_he)))
+        axes[1,0].set_yticklabels(interests_he)
+        axes[1,0].set_title('Top 15 Interests by High Engagement\n(Users with Scores 7-9)')
+        axes[1,0].set_xlabel('Number of Highly Engaged Users')
     
     # Lifestyle segments
     if 'data.document.attributes.lifestyle_segment' in df.columns:
         lifestyle_counts = df['data.document.attributes.lifestyle_segment'].value_counts().head(10)
         if len(lifestyle_counts) > 0:
-            axes[1,0].pie(lifestyle_counts.values, labels=lifestyle_counts.index, autopct='%1.1f%%')
-            axes[1,0].set_title('Top Lifestyle Segments')
+            axes[1,1].pie(lifestyle_counts.values, labels=lifestyle_counts.index, autopct='%1.1f%%')
+            axes[1,1].set_title('Top Lifestyle Segments')
     
     # Interest score distribution
     if interest_analysis:
@@ -391,18 +393,18 @@ def create_interests_analysis(df):
             scores = pd.to_numeric(df[col], errors='coerce').dropna()
             all_scores.extend(scores.tolist())
         
-        if all_scores:
-            axes[1,1].hist(all_scores, bins=range(1, 11), edgecolor='black', alpha=0.7, color='orange')
-            axes[1,1].set_title('Distribution of Interest Scores\n(All Interests Combined)')
-            axes[1,1].set_xlabel('Interest Score (1-9)')
-            axes[1,1].set_ylabel('Frequency')
-            axes[1,1].set_xticks(range(1, 10))
+        # if all_scores:
+        #     axes[1,1].hist(all_scores, bins=range(1, 11), edgecolor='black', alpha=0.7, color='orange')
+        #     axes[1,1].set_title('Distribution of Interest Scores\n(All Interests Combined)')
+        #     axes[1,1].set_xlabel('Interest Score (1-9)')
+        #     axes[1,1].set_ylabel('Frequency')
+        #     axes[1,1].set_xticks(range(1, 10))
             
-            # Add statistics
-            mean_score = np.mean(all_scores)
-            axes[1,1].axvline(mean_score, color='red', linestyle='--', linewidth=2, 
-                             label=f'Mean: {mean_score:.1f}')
-            axes[1,1].legend()
+        #     # Add statistics
+        #     mean_score = np.mean(all_scores)
+        #     axes[1,1].axvline(mean_score, color='red', linestyle='--', linewidth=2, 
+        #                      label=f'Mean: {mean_score:.1f}')
+        #     axes[1,1].legend()
     
     # Interest insights and statistics
     total_users = len(df)
@@ -438,13 +440,13 @@ def create_interests_analysis(df):
             pct = (data['high_interest_users'] / total_users) * 100
             summary_text += f"\n{i+1}. {interest}: {data['high_interest_users']:,} ({pct:.1f}%)"
         
-        axes[1,2].text(0.05, 0.95, summary_text, transform=axes[1,2].transAxes, 
-                      fontsize=10, verticalalignment='top',
-                      bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
-        axes[1,2].set_xlim(0, 1)
-        axes[1,2].set_ylim(0, 1)
-        axes[1,2].axis('off')
-        axes[1,2].set_title('Key Interest Insights')
+        # axes[1,2].text(0.05, 0.95, summary_text, transform=axes[1,2].transAxes, 
+        #               fontsize=10, verticalalignment='top',
+        #               bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+        # axes[1,2].set_xlim(0, 1)
+        # axes[1,2].set_ylim(0, 1)
+        # axes[1,2].axis('off')
+        # axes[1,2].set_title('Key Interest Insights')
     
     plt.tight_layout()
     plt.savefig('interests_analysis.png', dpi=300, bbox_inches='tight')
@@ -454,7 +456,7 @@ def create_summary_dashboard(df):
     """Create a high-level summary dashboard"""
     print("Creating summary dashboard...")
     
-    fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+    fig, axes = plt.subplots(2, 2, figsize=(20, 12))
     fig.suptitle('User Base Summary Dashboard', fontsize=18, fontweight='bold')
     
     # Key metrics
@@ -494,11 +496,11 @@ def create_summary_dashboard(df):
                                    labels=['<$30K', '$30K-$60K', '$60K-$100K', '$100K-$150K', '>$150K'])
             bracket_counts = income_brackets.value_counts()
             
-            axes[0,2].bar(range(len(bracket_counts)), bracket_counts.values, color='lightgreen')
-            axes[0,2].set_xticks(range(len(bracket_counts)))
-            axes[0,2].set_xticklabels(bracket_counts.index, rotation=45)
-            axes[0,2].set_title('Income Distribution')
-            axes[0,2].set_ylabel('Number of Users')
+            axes[1,0].bar(range(len(bracket_counts)), bracket_counts.values, color='lightgreen')
+            axes[1,0].set_xticks(range(len(bracket_counts)))
+            axes[1,0].set_xticklabels(bracket_counts.index, rotation=45)
+            axes[1,0].set_title('Income Distribution')
+            axes[1,0].set_ylabel('Number of Users')
     
     # Key statistics text
     stats_text = f"""USER BASE OVERVIEW
@@ -527,9 +529,9 @@ def create_summary_dashboard(df):
     # axes[1,0].text(0.05, 0.95, stats_text, transform=axes[1,0].transAxes, 
     #               fontsize=12, verticalalignment='top', fontweight='bold',
     #               bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
-    axes[1,0].set_xlim(0, 1)
-    axes[1,0].set_ylim(0, 1)
-    axes[1,0].axis('off')
+    # axes[1,0].set_xlim(0, 1)
+    # axes[1,0].set_ylim(0, 1)
+    # axes[1,0].axis('off')
     
     # Top cities
     if 'data.document.attributes.city' in df.columns:
@@ -570,9 +572,9 @@ def create_summary_dashboard(df):
     # axes[1,2].text(0.05, 0.95, insights_text, transform=axes[1,2].transAxes, 
     #               fontsize=10, verticalalignment='top',
     #               bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
-    axes[1,2].set_xlim(0, 1)
-    axes[1,2].set_ylim(0, 1)
-    axes[1,2].axis('off')
+    # axes[1,2].set_xlim(0, 1)
+    # axes[1,2].set_ylim(0, 1)
+    # axes[1,2].axis('off')
     
     plt.tight_layout()
     plt.savefig('summary_dashboard.png', dpi=300, bbox_inches='tight')
@@ -1016,7 +1018,7 @@ def generate_html_dashboard(df):
         <section id="summary" class="section">
             <div class="section-header">
                 <h2>📊 Executive Summary Dashboard</h2>
-                <p>High-level overview of your user base with key metrics and strategic insights</p>
+                <p>High-level overview of user base with key metrics and strategic insights</p>
             </div>
             <div class="section-content">
                 <div class="chart-container">
@@ -1058,7 +1060,7 @@ def generate_html_dashboard(df):
         <section id="geographic" class="section">
             <div class="section-header">
                 <h2>🗺️ Geographic Distribution</h2>
-                <p>Understanding where your users are located for regional strategy and expansion planning</p>
+                <p>Understanding where users are located for regional strategy and expansion planning</p>
             </div>
             <div class="section-content">
                 <div class="chart-container">
@@ -1092,7 +1094,7 @@ def generate_html_dashboard(df):
         <section id="demographics" class="section">
             <div class="section-header">
                 <h2>👥 User Demographics</h2>
-                <p>Comprehensive profile of your user base including gender, education, and family characteristics</p>
+                <p>Comprehensive profile of user base including gender, education, and family characteristics</p>
             </div>
             <div class="section-content">
                 <div class="chart-container">
@@ -1168,13 +1170,13 @@ def generate_html_dashboard(df):
                     <img src="interests_analysis.png" alt="Interest Analysis">
                 </div>
                 
-                <div class="methodology">
+                <!-- <div class="methodology">
                     <h4>📋 Interest Scoring Methodology</h4>
                     <p><strong>Data Sources:</strong> Purchases, memberships, magazine subscriptions, survey responses</p>
                     <p><strong>Scoring Scale:</strong> 1 (low interest) to 9 (high interest)</p>
                     <p><strong>Factors:</strong> Recency, frequency, monetary value, number of sources</p>
                     <p><strong>High Engagement:</strong> Scores 7-9 indicate strong purchasing patterns and multiple engagement sources</p>
-                </div>
+                </div> -->
 
                 <!-- <div class="business-insights">
                     <h3>🎯 Key Interest Insights</h3>
