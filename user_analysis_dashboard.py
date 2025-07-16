@@ -26,10 +26,10 @@ def load_and_clean_data(filename='data_axle_results.csv'):
         'data.document.attributes.gender', 'data.document.attributes.city', 
         'data.document.attributes.state', 'data.document.attributes.postal_code',
         'data.document.attributes.family.estimated_income', 'data.document.attributes.family.estimated_wealth[0]',
-        'data.document.attributes.family.estimated_education_level', 'data.document.attributes.family.home_owner',
-        'data.document.attributes.family.adult_count', 'data.document.attributes.family.member_count',
-        'data.document.attributes.estimated_married', 'data.document.attributes.lifestyle_segment',
-        'data.document.attributes.political_party_affiliation'
+        'data.document.attributes.family.estimated_wealth[1]', 'data.document.attributes.family.estimated_education_level', 
+        'data.document.attributes.family.home_owner', 'data.document.attributes.family.adult_count', 
+        'data.document.attributes.family.member_count', 'data.document.attributes.estimated_married', 
+        'data.document.attributes.lifestyle_segment', 'data.document.attributes.political_party_affiliation'
     ]
     
     # Interest columns (sample - there are many more)
@@ -194,6 +194,18 @@ def create_financial_analysis(df):
             axes[0,0].set_xlabel('Income ($)')
             axes[0,0].set_ylabel('Number of Users')
             
+            # Format x-axis to show proper dollar amounts
+            def format_dollars_income(x, pos):
+                if x >= 1000000:
+                    return f'${x/1000000:.1f}M'
+                elif x >= 1000:
+                    return f'${x/1000:.0f}K'
+                else:
+                    return f'${x:.0f}'
+            
+            from matplotlib.ticker import FuncFormatter
+            axes[0,0].xaxis.set_major_formatter(FuncFormatter(format_dollars_income))
+            
             # Add income statistics
             income_stats = f"""Income Statistics:
 Mean: ${income_data.mean():,.0f}
@@ -204,14 +216,44 @@ Q3: ${income_data.quantile(0.75):,.0f}"""
                           fontsize=9, verticalalignment='top',
                           bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
     
-    # Wealth distribution
-    if 'data.document.attributes.family.estimated_wealth[0]' in df.columns:
-        wealth_data = df['data.document.attributes.family.estimated_wealth[0]'].dropna()
-        if len(wealth_data) > 0:
-            axes[0,1].hist(wealth_data, bins=30, edgecolor='black', alpha=0.7, color='green')
-            axes[0,1].set_title('Estimated Wealth Distribution')
+    # Wealth distribution (using range midpoint)
+    if ('data.document.attributes.family.estimated_wealth[0]' in df.columns and 
+        'data.document.attributes.family.estimated_wealth[1]' in df.columns):
+        wealth_min = pd.to_numeric(df['data.document.attributes.family.estimated_wealth[0]'], errors='coerce')
+        wealth_max = pd.to_numeric(df['data.document.attributes.family.estimated_wealth[1]'], errors='coerce')
+        
+        # Calculate midpoint of wealth ranges for analysis
+        wealth_midpoint = (wealth_min + wealth_max) / 2
+        wealth_midpoint = wealth_midpoint.dropna()
+        
+        if len(wealth_midpoint) > 0:
+            axes[0,1].hist(wealth_midpoint, bins=30, edgecolor='black', alpha=0.7, color='green')
+            axes[0,1].set_title('Estimated Wealth Distribution\n(Range Midpoints)')
             axes[0,1].set_xlabel('Wealth ($)')
             axes[0,1].set_ylabel('Number of Users')
+            
+            # Format x-axis to show proper dollar amounts
+            def format_dollars(x, pos):
+                if x >= 1000000:
+                    return f'${x/1000000:.1f}M'
+                elif x >= 1000:
+                    return f'${x/1000:.0f}K'
+                else:
+                    return f'${x:.0f}'
+            
+            from matplotlib.ticker import FuncFormatter
+            axes[0,1].xaxis.set_major_formatter(FuncFormatter(format_dollars))
+            
+            # Add wealth statistics
+            wealth_stats = f"""Wealth Statistics:
+Mean: ${wealth_midpoint.mean():,.0f}
+Median: ${wealth_midpoint.median():,.0f}
+Q1: ${wealth_midpoint.quantile(0.25):,.0f}
+Q3: ${wealth_midpoint.quantile(0.75):,.0f}
+Range Data: {len(wealth_midpoint):,} users"""
+            axes[0,1].text(0.7, 0.95, wealth_stats, transform=axes[0,1].transAxes, 
+                          fontsize=9, verticalalignment='top',
+                          bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
     
     # Income vs Home Ownership
     if 'data.document.attributes.family.estimated_income' in df.columns and 'data.document.attributes.family.home_owner' in df.columns:
@@ -226,18 +268,36 @@ Q3: ${income_data.quantile(0.75):,.0f}"""
                 axes[1,0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1000, 
                               f'${value:,.0f}', ha='center', va='bottom')
     
-    # Income brackets
-    if 'data.document.attributes.family.estimated_income' in df.columns:
-        income_data = df['data.document.attributes.family.estimated_income'].dropna()
-        if len(income_data) > 0:
-            # Create income brackets
-            income_brackets = pd.cut(income_data, 
-                                   bins=[0, 25000, 50000, 75000, 100000, 150000, float('inf')],
-                                   labels=['<$25K', '$25K-$50K', '$50K-$75K', '$75K-$100K', '$100K-$150K', '>$150K'])
-            bracket_counts = income_brackets.value_counts()
+    # Wealth brackets (using range midpoints)
+    if ('data.document.attributes.family.estimated_wealth[0]' in df.columns and 
+        'data.document.attributes.family.estimated_wealth[1]' in df.columns):
+        wealth_min = pd.to_numeric(df['data.document.attributes.family.estimated_wealth[0]'], errors='coerce')
+        wealth_max = pd.to_numeric(df['data.document.attributes.family.estimated_wealth[1]'], errors='coerce')
+        wealth_midpoint = (wealth_min + wealth_max) / 2
+        wealth_midpoint = wealth_midpoint.dropna()
+        
+        if len(wealth_midpoint) > 0:
+            # Create wealth brackets
+            wealth_brackets = pd.cut(wealth_midpoint, 
+                                   bins=[0, 50000, 100000, 250000, 500000, 1000000, float('inf')],
+                                   labels=['<$50K', '$50K-$100K', '$100K-$250K', '$250K-$500K', '$500K-$1M', '>$1M'])
+            bracket_counts = wealth_brackets.value_counts()
             
             axes[1,1].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
-            axes[1,1].set_title('Income Bracket Distribution')
+            axes[1,1].set_title('Wealth Bracket Distribution\n(Range Midpoints)')
+    else:
+        # Fallback to income brackets if wealth data not available
+        if 'data.document.attributes.family.estimated_income' in df.columns:
+            income_data = df['data.document.attributes.family.estimated_income'].dropna()
+            if len(income_data) > 0:
+                # Create income brackets
+                income_brackets = pd.cut(income_data, 
+                                       bins=[0, 25000, 50000, 75000, 100000, 150000, float('inf')],
+                                       labels=['<$25K', '$25K-$50K', '$50K-$75K', '$75K-$100K', '$100K-$150K', '>$150K'])
+                bracket_counts = income_brackets.value_counts()
+                
+                axes[1,1].pie(bracket_counts.values, labels=bracket_counts.index, autopct='%1.1f%%')
+                axes[1,1].set_title('Income Bracket Distribution')
     
     plt.tight_layout()
     plt.savefig('financial_analysis.png', dpi=300, bbox_inches='tight')
