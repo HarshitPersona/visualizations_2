@@ -212,9 +212,9 @@ Mean: ${income_data.mean():,.0f}
 Median: ${income_data.median():,.0f}
 Q1: ${income_data.quantile(0.25):,.0f}
 Q3: ${income_data.quantile(0.75):,.0f}"""
-            axes[0,0].text(0.7, 0.95, income_stats, transform=axes[0,0].transAxes, 
-                          fontsize=9, verticalalignment='top',
-                          bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+            # axes[0,0].text(0.7, 0.95, income_stats, transform=axes[0,0].transAxes, 
+            #               fontsize=9, verticalalignment='top',
+            #               bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
     
     # Wealth distribution (using range midpoint)
     if ('data.document.attributes.family.estimated_wealth[0]' in df.columns and 
@@ -251,9 +251,9 @@ Median: ${wealth_midpoint.median():,.0f}
 Q1: ${wealth_midpoint.quantile(0.25):,.0f}
 Q3: ${wealth_midpoint.quantile(0.75):,.0f}
 Range Data: {len(wealth_midpoint):,} users"""
-            axes[0,1].text(0.7, 0.95, wealth_stats, transform=axes[0,1].transAxes, 
-                          fontsize=9, verticalalignment='top',
-                          bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+            # axes[0,1].text(0.7, 0.95, wealth_stats, transform=axes[0,1].transAxes, 
+            #               fontsize=9, verticalalignment='top',
+            #               bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
     
     # Income vs Home Ownership
     # if 'data.document.attributes.family.estimated_income' in df.columns and 'data.document.attributes.family.home_owner' in df.columns:
