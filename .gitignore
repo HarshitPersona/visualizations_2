@@ -4,4 +4,5 @@ node_modules/
 .vscode/
 .git/
 data_axle_results*
+customer_emails*
 **pycache**
